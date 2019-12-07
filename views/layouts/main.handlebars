@@ -11,8 +11,11 @@
 </head>
 
 <body>
+    {{!-- _navebar is a partial and we bring it in as follows --}}
     {{> _navbar}}
     <div class="container">
+        {{!-- This the _msg partial that shows the flash message --}}
+        {{> _msg}}
         {{{body}}}
     </div>
 
