@@ -5,11 +5,15 @@ const methodOverride = require('method-override');
 const flash = require('connect-flash');
 const session = require('express-session');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+const passport = require('passport');
 
 //LOAD ROUTES
 const ideas = require('./routes/ideas');
 const users = require('./routes/users');
+
+//PASSPORT CONFIG
+require('./config/passport')(passport); 
 
 const app = express();
 //map global promise - get rid of warning
@@ -54,6 +58,10 @@ app.use(session({
     saveUninitialized: true
   }));
 
+//PASSPORT MIDDLEWARE, really important to put it after the express session middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
 //CONNECT-FLASH MIDDLEWARE
 app.use(flash());
 
@@ -62,6 +70,7 @@ app.use(function(req,res,next){
     res.locals.success_msg = req.flash("success_msg");
     res.locals.error_msg = req.flash("error_msg");
     res.locals.error = req.flash("error");
+    res.locals.user = req.user || null;
     next();
 });
 

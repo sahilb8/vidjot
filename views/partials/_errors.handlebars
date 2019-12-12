@@ -1,0 +1,18 @@
+{{!-- Passport will create its own array called error for all the errors that occur --}}
+{{#if error}}
+<div class="alert alert-danger">
+    {{error}}
+</div>
+{{/if}}
+
+
+
+
+{{!-- This is the way in which we perform if else loop in handlebars --}}
+{{#each errors}}
+<div class="alert alert-danger">
+    {{text}}
+</div>
+{{else}}
+
+{{/each}}
