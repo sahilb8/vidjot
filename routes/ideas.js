@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+//this to bring in the ensureauthenticated function from the auth.js in helpers, you can bring multiple functions by adding then in the curly braces seperated by a comma
+const {ensureAuthenticated} = require("../helpers/auth");
 
 
 //Load Idea model
@@ -10,8 +12,8 @@ const Idea = mongoose.model("ideas");
 
 
 //IDEA index route
-router.get("/",(req,res)=>{
-    Idea.find({})
+router.get("/", ensureAuthenticated, (req,res)=>{
+    Idea.find({user: req.user.id})
     .sort({date:'desc'})
     .then(ideas=>{
         res.render("ideas/index",{
@@ -21,25 +23,30 @@ router.get("/",(req,res)=>{
 });
 
 //add Idea Form route
-router.get("/add",(req,res)=>{
+router.get("/add", ensureAuthenticated, (req,res)=>{
     res.render("ideas/add");
 });
 
 //edit Idea Form route, over here in url :id represents the idea id which we want to edit,we can access it using req.params.id
-router.get("/edit/:id",(req,res)=>{
+router.get("/edit/:id", ensureAuthenticated, (req,res)=>{
     Idea.findOne({
         _id: req.params.id
     })
     .then(idea =>{
-        res.render("ideas/edit",{
-            idea:idea
-        });
+        if(idea.user != req.user.id){
+            req.flash("error_msg","Not Authorized");
+            res.redirect("/ideas");
+        }else{
+            res.render("ideas/edit",{
+                idea:idea
+       });
+    }
     });
    
 });
 
 //handle idea post request
-router.post("/",(req,res)=>{
+router.post("/", ensureAuthenticated, (req,res)=>{
     let errors = [];
     if(!req.body.title){
         errors.push({text:"Please add a title"});
@@ -58,7 +65,8 @@ router.post("/",(req,res)=>{
         //This code is when you have no errors
         const NewUser = {
             title : req.body.title,
-            details: req.body.details
+            details: req.body.details,
+            user: req.user.id
         }
         new Idea(NewUser)
             .save()
@@ -71,7 +79,7 @@ router.post("/",(req,res)=>{
 });
 
 //handle idea edit put request
-router.put('/:id',(req,res)=>{
+router.put('/:id', ensureAuthenticated, (req,res)=>{
     Idea.findOne({
         _id: req.params.id
     })
@@ -88,7 +96,7 @@ router.put('/:id',(req,res)=>{
 });
 
 //delete an idea,  as long as the methods are different you can same url.
-router.delete("/:id",(req,res)=>{
+router.delete("/:id", ensureAuthenticated, (req,res)=>{
     Idea.remove({_id:req.params.id})
     .then(()=>{
         req.flash("success_msg", "App Idea Removed");
